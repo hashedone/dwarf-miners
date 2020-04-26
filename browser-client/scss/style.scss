@@ -1,0 +1,14 @@
+#game {
+    height: 100vh;
+    display: grid;
+    grid-template:
+        "unused" 2fr
+        "player" 1fr
+        / auto;
+}
+
+#player {
+    grid-area: player;
+    padding: 10px;
+}
+
