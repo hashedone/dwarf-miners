@@ -25,13 +25,16 @@ pub use response::Response;
 /// directly on [Request](request/enum.Request.html) and [Response](response/enum.Response.html) types
 pub fn make_codec<Transport>(
     transport: Transport,
-) -> impl Stream<Item = Result<Request, CodecError>> + Sink<Response>
+) -> impl Stream<Item = Request> + Sink<Response, Error = CodecError>
 where
     Transport: AsyncWrite + AsyncRead,
 {
     let transport = Framed::new(transport, LengthDelimitedCodec::new());
-    let transport = transport.map(|bytes| -> Result<Request, CodecError> {
-        Ok(rmp_serde::decode::from_read_ref(&bytes?)?)
+    let transport = transport.filter_map(|bytes| async move {
+        let bytes = bytes.map_err(|_err| todo!("Log error")).ok()?;
+        rmp_serde::decode::from_read_ref(&bytes)
+            .map_err(|_err| todo!("Log error"))
+            .ok()
     });
 
     async fn encode_response(response: Response) -> Result<Bytes, CodecError> {
