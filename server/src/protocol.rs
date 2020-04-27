@@ -4,6 +4,7 @@ use futures::stream::{Stream, StreamExt};
 use std::io;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_util::codec::{Framed, LengthDelimitedCodec};
+use tracing::warn;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CodecError {
@@ -31,19 +32,26 @@ where
 {
     let transport = Framed::new(transport, LengthDelimitedCodec::new());
     let transport = transport.filter_map(|bytes| async move {
-        let bytes = bytes.map_err(|_err| todo!("Log error")).ok()?;
+        let bytes = bytes
+            .map_err(|err| warn!(?err, "Invalid length delimited frame"))
+            .ok()?;
         rmp_serde::decode::from_read_ref(&bytes)
-            .map_err(|_err| todo!("Log error"))
+            .map_err(|err| warn!(?err, msg = ?bytes, "Error while decoding message"))
             .ok()
     });
 
     async fn encode_response(response: Response) -> Result<Bytes, CodecError> {
-        let data = rmp_serde::encode::to_vec_named(&response)?;
+        let data = rmp_serde::encode::to_vec_named(&response).map_err(|err| {
+            warn!(?err, msg = ?response, "Error while encoding message");
+            err
+        })?;
         Ok(data.into())
     }
 
     transport
-        .sink_map_err(CodecError::from)
+        .sink_map_err(|err| {
+            warn!(?err, "Error while sending message");
+            CodecError::from(err)
+        })
         .with(encode_response)
 }
-
