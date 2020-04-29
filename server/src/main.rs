@@ -24,8 +24,7 @@ async fn handle_client(
     stream: impl Stream<Item = Request>,
     sink: impl Sink<Response, Error = impl std::error::Error + Sync + Send + 'static>,
 ) -> Result<(), Error> {
-    pin_mut!(stream);
-    pin_mut!(sink);
+    pin_mut!(sink, stream);
 
     #[allow(unreachable_patterns)]
     match stream.next().await.ok_or(ServerError::ConnectionClosed)? {
@@ -56,7 +55,7 @@ async fn serve() -> Result<(), Error> {
 
     info!("Client connected: {:?}", client.peer_addr());
 
-    let (sink, stream) = protocol::make_codec(client).split();
+    let (sink, stream) = protocol::make_codec(client);
     handle_client(stream, sink).await
 }
 
@@ -68,6 +67,6 @@ async fn main() {
     info!("Logging initialized");
 
     if let Err(err) = serve().await {
-        error!(?err, "Unhandled error while serving game");
+        error!(%err, "Unhandled error while serving game");
     }
 }
