@@ -3,14 +3,32 @@ version: 2.1
 
 commands:
     rust_version:
-        description: "Rust toolchain version"
+        description: Rust toolchain version
         steps:
-            - run: |
+            - run: 
+              name: Toolchain version
+              command: |
                 rustup --version
                 cargo --version
                 rustc --version
 
 jobs:
+    build_rust_docker:
+        machine:
+            docker_layer_caching: true
+        steps:
+            - checkout
+            - run:
+                name: Build Rust image
+                command: |
+                    IMAGE="hashedone/rust-convenience-alpine"
+                    TAG="dwarf-miners-${CIRCLE_BUILD_NUM}"
+                    docker build -t $IMAGE:$TAG docker/rust-alpine/
+                    docker tag $IMAGE:TAG $IMAGE:dwarf-miners
+                    docker login -u $DOCKER_USER -p $DOCKER_PWD
+                    docker push $IMAGE:TAG
+                    docker push $IMAGE:dwarf-miners
+
     build_rust_workspace:
         docker:
             - image: circleci/rust:latest
@@ -53,6 +71,9 @@ jobs:
 
 workflows:
     version: 2
+    dockers:
+        jobs:
+            - build_rust_docker
     rust:
         jobs:
             - build_rust_workspace
