@@ -2,7 +2,6 @@ use anyhow::Error;
 use futures::pin_mut;
 use futures::sink::{Sink, SinkExt};
 use futures::stream::{Stream, StreamExt};
-use tokio;
 use tokio::net::TcpListener;
 use tracing::{error, info, span, warn, Level};
 
