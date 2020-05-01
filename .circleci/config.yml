@@ -10,13 +10,18 @@ jobs:
                 name: Check build
                 command: cargo check --all
 
-    rust_workspace_lints:
+    rust_workspace_clippy:
         docker:
             - image: circleci/rust:latest
         steps:
             - clippy:
                 name: Check clippy
                 command: cargo clippy --all
+
+    rust_workspace_fmt:
+        docker:
+            - image: circleci/rust:latest
+        steps:
             - format:
                 name: Check formatting
                 command: cargo fmt --all -- --check
@@ -28,4 +33,19 @@ jobs:
             - test:
                 name: Check tests
                 command: cargo test --all
+
+workflows:
+    version: 2
+    rust:
+        jobs:
+            - build_rust_workspace
+            - rust_workspace_clippy:
+                requires:
+                    - build_rust_workspace
+            - rust_workspace_fmt:
+                requires:
+                    - build_rust_workspace
+            - rust_workspace_tests:
+                requires:
+                    - build_rust_workspace
 
