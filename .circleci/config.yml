@@ -5,7 +5,7 @@ commands:
     rust_version:
         description: Rust toolchain version
         steps:
-            - run: 
+            - run:
               name: Toolchain version
               command: |
                 rustup --version
