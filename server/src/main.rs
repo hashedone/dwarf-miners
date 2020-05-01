@@ -17,6 +17,7 @@ enum ServerError {
     UnexpectedMessage(Request),
     #[error("Connection closed")]
     ConnectionClosed,
+    aa,
 }
 
 async fn handle_client(
