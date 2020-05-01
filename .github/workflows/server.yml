@@ -1,0 +1,49 @@
+name: server
+
+on:
+    push:
+        paths:
+            - 'server'
+    pull_request:
+        paths:
+            - 'server'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v1
+            - uses: icepuma/rust-action@master
+              with:
+                  args: cd server && cargo check
+
+    clippy:
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - uses: actions/checkout@v1
+            - uses: icepuma/rust-action@master
+              with:
+                  args: cd server && cargo clippy
+
+    format:
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - uses: actions/checkout@v1
+            - uses: icepuma/rust-action@master
+              with:
+                  args: cd server && cargo fmt -- --check
+
+    tests:
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - uses: actions/checkout@v1
+            - uses: icepuma/rust-action@master
+              with:
+                  args: cd server && cargo test
