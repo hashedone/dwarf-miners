@@ -6,11 +6,11 @@ commands:
         description: Rust toolchain version
         steps:
             - run:
-              name: Toolchain version
-              command: |
-                rustup --version
-                cargo --version
-                rustc --version
+                name: Toolchain version
+                command: |
+                    rustup --version
+                    cargo --version
+                    rustc --version
 
 jobs:
     build_rust_docker:
